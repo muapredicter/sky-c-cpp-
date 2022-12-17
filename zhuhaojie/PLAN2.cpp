@@ -338,15 +338,78 @@ int strbuf_getline(struct strbuf *sb, FILE *fp)
 //max 可以用来限定最大切割数量。返回 struct strbuf 的指针数组，数组的最后元素为 NULL
 struct strbuf **strbuf_split_buf(const char *str, size_t len, int terminator, int max)
 {
-
+    //开辟内存
+    struct strbuf **ans_buflist=(struct strbuf **)malloc(sizeof(struct strbuf*)*max);
+    //临时切割数
+    int temp_num=0;
+    //保存目标字符的地址和被切割字符串的末尾地址
+    char *termin=(char*)&terminator;
+    const char* end_str=str+len;
+    //当首个字符就是被切割字符的时候
+    while(*str==(char)terminator)
+    {
+        ans_buflist[temp_num]->len=1;
+        ans_buflist[temp_num]->alloc=2;
+        ans_buflist[temp_num]->buf=(char*)malloc(sizeof(char)*2);
+        memcpy(ans_buflist[temp_num],termin,1);
+        ans_buflist[temp_num]->buf[2]='\0';
+        temp_num++;
+        str++;
+        if(str==end_str||temp_num==max)
+        {
+            break;
+        }
+    }
+    //当字符串中间中出现被切割字符时
+    for (const char* temp_length=str+1;temp_length<=end_str;temp_length++)
+    {
+        if (*temp_length==(char)terminator)
+        {
+            int temp_len=temp_length-str;
+            ans_buflist[temp_num]->len=temp_len;
+            ans_buflist[temp_num]->alloc=temp_len+1;
+            ans_buflist[temp_num]->buf=(char*)malloc(sizeof(char)*ans_buflist[temp_num]->alloc);
+            memcpy(ans_buflist[temp_num]->buf,str,temp_len);
+            ans_buflist[temp_num]->buf[ans_buflist[temp_num]->alloc]='\0';
+            temp_num++;
+            //判断是否到尾
+            while(*temp_length==(char)terminator&&temp_length<=end_str)
+            {
+                temp_length++;
+            }
+            //跳出条件
+            if(temp_num==max||temp_length==end_str)
+            {
+                break;
+            }
+        }
+    }
+    return ans_buflist;
 }
 
 //2.实现判断一个 strbuf 是否以指定字符串开头的功能（C 系字符串函数的另一个痛点）
-//target_str : 目标字符串，str : 前缀字符串，strlen : target_str 长度 ，
+//target_str : 目标字符串，str : 前缀字符串，strlen_target_str : target_str 长度 ，
 //前缀相同返回 true 失败返回 false
-bool strbuf_begin_judge(char* target_str, const char* str, int strlen)
+bool strbuf_begin_judge(char* target_str, const char* str, int strlen_target_str)
 {
-
+    //前缀字符串长度为0时，就是随机开头，显然true
+    if(strlen(str)==0)
+    return true;
+    //前缀字符串都比目标字符串长，怎么可能嘛，显然false
+    if(strlen(str)>strlen_target_str)
+    {
+        return false;
+    }
+    //正式比较
+    if(memcmp(target_str,str,strlen_target_str)==0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+    
 }
 
 //3.获取字符串从坐标 [begin, end) 的所有内容（可以分成引用和拷贝两个模式）。
@@ -354,5 +417,28 @@ bool strbuf_begin_judge(char* target_str, const char* str, int strlen)
 //参数不合法返回 NULL. 下标从0开始，[begin, end)区间。
 char* strbuf_get_mid_buf(char* target_buf, int begin, int end, int len)
 {
+    //确保输入的end正确
+    if(end<0||end>len||end<begin)
+    {
+        return NULL;
+    }
+    int ans_length=end-begin-1;
+    char* ans_str=(char*)malloc(sizeof(char)*ans_length);
+    memcpy(ans_str,target_buf,ans_length);
+    ans_str[ans_length+1]='\0';
+    return ans_str;
+}  
 
+int main()
+{
+
+
+
+
+
+
+
+
+
+    return 0;
 }
